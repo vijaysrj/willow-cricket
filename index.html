@@ -279,8 +279,8 @@ const FIELD_PACE = [
   F('bowler', -0.5, -15.5, { bowler: true, react: 0.3 }),
 ];
 const FIELD_SPIN = [
-  F('keeper', 0.95, 1.0, { keeper: true, react: 0.1, speed: 3, reach: 1.4 }),
-  F('slip', 2.0, 2.8, { react: 0.1, speed: 3, reach: 1.2 }),
+  F('keeper', 0.3, 1.0, { keeper: true, react: 0.1, speed: 3, reach: 1.4 }),
+  F('slip', 1.0, 2.4, { react: 0.1, speed: 3, reach: 1.2 }),
   F('point', 16, -1), F('cover', 15, -12), F('long-off', 14, -60), F('mid-on', -8, -24),
   F('midwicket', -17, -11), F('deep midwicket', -40, -28), F('short fine leg', -12, 12), F('deep square leg', -45, 5),
   F('bowler', -0.5, -15.5, { bowler: true, react: 0.3 }),
@@ -617,9 +617,6 @@ applyBatsman(curLegs, curUpper);
 const nonStriker = makeFigure(0x1d3f8a, { helmet: 0x14254f, pads: true, gloves: 0xf0efe8 }); nonStriker.position.set(0.7, 0, -PITCH + 1.4); scene.add(nonStriker);
 const umpire = makeFigure(0xf0efe8, { pants: 0x1a1a1a, hat: 0xf0efe8 }); umpire.position.set(-0.4, 0, -PITCH - 2.2); scene.add(umpire);
 const fielders = Array.from({ length: 11 }, (_, i) => { const f = makeFigure(0x7a1f2b, { pants: 0x5a1520, trim: 0xe0c060, cap: i === 10 ? false : undefined, pads: i === 0, gloves: i === 0 ? 0xd8d2b8 : undefined }); scene.add(f); return f; });
-[0, 1].forEach(i => fielders[i].traverse(m => { if (m.isMesh && m.material !== shadowMat) { m.material = m.material.clone(); m.material.transparent = true; } }));
-function setGhost(fig, op) { fig.traverse(m => { if (m.isMesh && m.material !== shadowMat) { m.material.opacity = op; m.material.depthWrite = op > 0.99; } }); }
-let ghostOp = 1;
 const bowlerFig = fielders[10]; bowlerFig.userData.noArmSwing = true;
 
 const ball = new THREE.Mesh(new THREE.SphereGeometry(R, 14, 10), new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x4a4a4a }));
@@ -1493,11 +1490,10 @@ function loop() {
   requestAnimationFrame(loop);
   const t = performance.now() / 1000, dt = Math.min(0.05, t - last); last = t; nowS = t;
   if (!paused) { update(t, dt); updateFX(t, dt); }
-  // keeper standing up: fade the keeper and slip while the ball is coming down so they never hide it
+  // keeper standing up to spin sits between the batting camera and the ball: keep him out of shot while the ball is live
   if (G && G.field.length) {
-    const standingUp = G.bowlers[G.bowlerIdx].type === 'spin' && (state === 'runup' || state === 'delivery' || state === 'idle');
-    const target = standingUp ? 0.28 : 1;
-    if (Math.abs(ghostOp - target) > 0.005) { ghostOp = lerp(ghostOp, target, 1 - Math.exp(-8 * dt)); if (Math.abs(ghostOp - target) < 0.01) ghostOp = target; setGhost(fielders[0], ghostOp); setGhost(fielders[1], ghostOp); }
+    const hide = G.bowlers[G.bowlerIdx].type === 'spin' && (state === 'idle' || state === 'runup' || state === 'delivery');
+    fielders[0].visible = !hide; fielders[1].visible = !hide;
   }
   renderer.render(scene, camera);
 }
