@@ -624,7 +624,7 @@ scene.add(ball); ball.visible = false;
 const ballShadow = new THREE.Mesh(new THREE.CircleGeometry(0.075, 12), shadowMat); ballShadow.rotation.x = -Math.PI / 2; scene.add(ballShadow); ballShadow.visible = false;
 
 const camLook = new THREE.Vector3();
-const BAT_CAM = { pos: new THREE.Vector3(0.85, 1.95, 4.4), look: new THREE.Vector3(0, 0.9, -10) };
+const BAT_CAM = { pos: new THREE.Vector3(0.12, 1.95, 4.4), look: new THREE.Vector3(0.12, 0.9, -10) };
 camera.position.copy(BAT_CAM.pos); camLook.copy(BAT_CAM.look); camera.lookAt(camLook);
 
 function resize() {
